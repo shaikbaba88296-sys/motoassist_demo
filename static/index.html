@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MotoAssist - Voice Assistant</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Voice Assistant Left Section -->
+        <div class="card assistant-card">
+            <h2>🛵 MotoAssist Desk</h2>
+            <div class="bot-avatar">
+                <span class="pulse"></span>
+                🎙️
+            </div>
+            <p id="call-status">Click below to start call</p>
+            
+            <div class="controls">
+                <button id="btn-start" class="btn btn-primary">Start Call</button>
+                <button id="btn-stop" class="btn btn-danger" disabled>End Call</button>
+            </div>
+
+            <div class="transcription-box">
+                <p><strong>You:</strong> <span id="user-transcript">...</span></p>
+                <p><strong>Bot:</strong> <span id="bot-response">...</span></p>
+            </div>
+        </div>
+
+        <!-- Dynamic WhatsApp Card Right Section -->
+        <div class="card whatsapp-card">
+            <div class="wa-header">
+                <h3>💬 WhatsApp Alert</h3>
+                <span class="live-badge">Synced</span>
+            </div>
+
+            <div id="wa-empty" class="wa-placeholder">
+                No active notifications yet. Start conversation to receive updates.
+            </div>
+
+            <div id="wa-alert-box" class="wa-alert" style="display: none;">
+                <div class="wa-message-header">
+                    <h4>⚠️ Urgent Repair Alert</h4>
+                    <span class="badge badge-warning" id="approval-badge">Pending</span>
+                </div>
+                <div class="wa-body">
+                    <p><strong>Vehicle:</strong> <span id="wa-veh-no">AP09XX1234</span></p>
+                    <p><strong>Issue:</strong> <span id="wa-issue">Front Brake Pad worn out</span></p>
+                    <p><strong>Est. Cost:</strong> ₹<span id="wa-cost">450</span> | <strong>Time:</strong> +25 mins</p>
+                    <img src="/static/brake_pad.jpg" alt="Part Inspection" class="part-img" onerror="this.style.display='none'">
+                </div>
+                <div class="wa-actions" id="wa-action-buttons">
+                    <button id="btn-approve" class="btn btn-success">Approve (₹450)</button>
+                    <button id="btn-reject" class="btn btn-secondary">Decline</button>
+                </div>
+            </div>
+
+            <div class="bill-summary">
+                <div><span>Total Bill:</span> <strong>₹<span id="bill-amount">1200</span></strong></div>
+                <div><span>Delivery ETA:</span> <strong><span id="bill-eta">05:00 PM</span></strong></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>
