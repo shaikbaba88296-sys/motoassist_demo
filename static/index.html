@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MotoAssist - Professional Service Desk & Voice AI</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div class="app-layout">
+    <!-- Header -->
+    <header class="top-nav no-print">
+        <div class="brand">
+            <span class="logo-icon">🏍️</span>
+            <div>
+                <h2>MotoAssist Service Desk</h2>
+                <p>Automated Two-Wheeler Diagnostic & Approval Desk</p>
+            </div>
+        </div>
+        <div class="system-tag">
+            <span class="live-dot"></span> Live System MVP
+        </div>
+    </header>
+
+    <!-- Vehicle Selection Bar -->
+    <div class="selector-card no-print">
+        <div class="selector-content">
+            <label for="vehicle-select"><strong>Select Vehicle / Job Sheet:</strong></label>
+            <select id="vehicle-select">
+                <option value="AP09XX1234">AP09XX1234 - Ravi Kumar (Front Brake Pad - ₹450)</option>
+                <option value="AP21BC5678">AP21BC5678 - Suresh Reddy (Clutch & Oil Leak - ₹1800)</option>
+                <option value="TS07EF9999">TS07EF9999 - Praveen Kumar (Battery Issue - ₹1250)</option>
+                <option value="AP39AZ4321">AP39AZ4321 - Mahesh Naidu (Chain Sprocket - ₹1200)</option>
+                <option value="KA04MK7711">KA04MK7711 - Rajesh Varma (General Inspection - ₹0)</option>
+                <option value="TN09ZZ3344">TN09ZZ3344 - Anitha Rao (Tyre Replacement - ₹600)</option>
+            </select>
+        </div>
+        <button id="btn-call-trigger" class="btn-voice-connect">📞 Connect Live Voice Desk</button>
+    </div>
+
+    <!-- Main Grid Workspace -->
+    <div class="grid-container no-print">
+        <!-- Voice Assistant Section -->
+        <div class="panel-card">
+            <div class="panel-header">
+                <h3>🎙️ AI Voice Call Desk</h3>
+                <span id="call-state-badge" class="state-idle">Idle</span>
+            </div>
+
+            <div class="call-controls">
+                <button id="btn-start" class="btn-primary">Connect Call</button>
+                <button id="btn-stop" class="btn-danger" disabled>Hang Up</button>
+            </div>
+
+            <div class="conversation-feed">
+                <div class="feed-item user-msg">
+                    <span class="speaker-tag">Customer Speech</span>
+                    <p id="user-transcript">Speech input will display here...</p>
+                </div>
+                <div class="feed-item bot-msg">
+                    <span class="speaker-tag">Bot Response (Telugu Audio)</span>
+                    <p id="bot-response">Select vehicle or click connect call to start...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Real-Time Job Summary & Decision -->
+        <div class="panel-card">
+            <div class="panel-header">
+                <h3>📋 Active Job Card</h3>
+                <span id="job-status-pill" class="pill-pending">Decision Pending</span>
+            </div>
+
+            <div class="job-meta">
+                <div class="meta-row"><span>Customer Name:</span> <strong id="lbl-cust-name">Ravi Kumar</strong></div>
+                <div class="meta-row"><span>Vehicle Registration:</span> <strong id="lbl-veh-no">AP09XX1234</strong></div>
+                <div class="meta-row"><span>Detected Issue:</span> <strong id="lbl-issue" class="highlight-issue">Front Brake Pad</strong></div>
+                <div class="meta-row"><span>Additional Cost:</span> <strong>₹<span id="lbl-issue-cost">450</span></strong></div>
+                <div class="meta-row"><span>Initial Base Bill:</span> <strong>₹<span id="lbl-base-bill">1200</span></strong></div>
+                <div class="meta-row total-highlight"><span>Current Net Total:</span> <strong>₹<span id="lbl-total-bill">1200</span></strong></div>
+                <div class="meta-row"><span>Estimated Delivery:</span> <strong id="lbl-eta">05:00 PM</strong></div>
+            </div>
+
+            <div class="decision-actions">
+                <button id="btn-approve" class="btn-approve">Approve (సమ్మతం)</button>
+                <button id="btn-reject" class="btn-reject">Decline (వద్దు)</button>
+            </div>
+
+            <button id="btn-print-invoice" class="btn-print">🖨️ Print Final Job Sheet / Invoice</button>
+        </div>
+    </div>
+
+    <!-- Official Printable Invoice Sheet (Only visible during print) -->
+    <div id="printable-receipt" class="print-area">
+        <div class="print-header">
+            <h2>MOTOASSIST TWO-WHEELER SERVICE CENTER</h2>
+            <p>Official Service Order & Customer Authorization Slip</p>
+            <hr>
+        </div>
+        <div class="print-details">
+            <p><strong>Date & Time:</strong> <span id="print-date"></span></p>
+            <p><strong>Vehicle Number:</strong> <span id="print-veh-no"></span></p>
+            <p><strong>Customer Name:</strong> <span id="print-cust-name"></span></p>
+            <p><strong>Customer Decision:</strong> <span id="print-decision" class="print-status"></span></p>
+        </div>
+        <table class="print-table">
+            <thead>
+                <tr>
+                    <th>Description</th>
+                    <th>Status</th>
+                    <th>Amount (INR)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Periodic General Service & Maintenance</td>
+                    <td>Included</td>
+                    <td id="print-base-bill">₹1200</td>
+                </tr>
+                <tr>
+                    <td id="print-issue-desc">Additional Repair</td>
+                    <td id="print-part-status">Pending</td>
+                    <td id="print-issue-cost">₹0</td>
+                </tr>
+                <tr class="table-total-row">
+                    <td colspan="2"><strong>Final Payable Amount</strong></td>
+                    <td><strong id="print-final-total">₹1200</strong></td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="print-footer">
+            <p><strong>Estimated Delivery:</strong> <span id="print-eta"></span></p>
+            <p>Customer Authorization recorded via MotoAssist Automated Voice AI Portal.</p>
+            <div class="signatures">
+                <div>Customer Signature</div>
+                <div>Authorized Service Manager</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/static/script.js"></script>
+</body>
+</html>
