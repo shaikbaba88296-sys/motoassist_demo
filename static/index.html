@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="te">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Powered Voice Bot for Smart Business Automation</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background: #030712; color: #f1f5f9; min-height: 100vh; padding: 18px 14px; display: flex; justify-content: center; }
+        .app-layout { width: 100%; max-width: 1050px; }
+        .top-nav { display: flex; justify-content: space-between; align-items: center; background: #0f172a; padding: 18px 22px; border-radius: 16px; border: 1px solid #1e293b; margin-bottom: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        .brand { display: flex; align-items: center; gap: 14px; }
+        .brand h2 { font-size: 1.25rem; font-weight: 800; background: linear-gradient(135deg, #38bdf8, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .brand p { font-size: 0.8rem; color: #94a3b8; }
+        .logo-icon { font-size: 2rem; }
+        .system-tag { background: rgba(16, 185, 129, 0.15); color: #34d399; padding: 6px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; border: 1px solid #10b981; }
+        .selector-card { background: #0f172a; border: 1px solid #1e293b; border-radius: 14px; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; gap: 14px; margin-bottom: 20px; }
+        .selector-content { display: flex; align-items: center; gap: 12px; flex: 1; }
+        .selector-content select { background: #1e293b; border: 1px solid #334155; color: #38bdf8; padding: 10px 14px; border-radius: 8px; font-size: 0.9rem; font-weight: 600; outline: none; flex: 1; }
+        .btn-voice-connect { background: #2563eb; color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 700; cursor: pointer; }
+        .grid-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        @media (max-width: 800px) { .grid-container { grid-template-columns: 1fr; } .selector-card { flex-direction: column; align-items: stretch; } }
+        .panel-card { background: #0f172a; border: 1px solid #1e293b; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; }
+        .panel-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1e293b; padding-bottom: 12px; margin-bottom: 16px; }
+        .state-idle { background: #1e293b; color: #94a3b8; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; }
+        .state-live { background: rgba(16, 185, 129, 0.2); color: #34d399; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; border: 1px solid #10b981; }
+        .call-controls { display: flex; gap: 10px; margin-bottom: 16px; }
+        button { cursor: pointer; border: none; border-radius: 8px; font-weight: 700; transition: 0.2s; }
+        .btn-primary { background: #10b981; color: white; padding: 10px; flex: 1; }
+        .btn-danger { background: #ef4444; color: white; padding: 10px; flex: 1; }
+        button:disabled { opacity: 0.4; cursor: not-allowed; }
+        .conversation-feed { display: flex; flex-direction: column; gap: 12px; background: #030712; padding: 16px; border-radius: 12px; border: 1px solid #1e293b; min-height: 200px; }
+        .feed-item { padding: 10px 14px; border-radius: 10px; font-size: 0.88rem; line-height: 1.5; }
+        .user-msg { background: rgba(99, 102, 241, 0.12); border: 1px solid #3730a3; color: #c7d2fe; }
+        .bot-msg { background: rgba(14, 165, 233, 0.12); border: 1px solid #0369a1; color: #bae6fd; }
+        .speaker-tag { display: block; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; margin-bottom: 4px; }
+        .user-msg .speaker-tag { color: #818cf8; }
+        .bot-msg .speaker-tag { color: #38bdf8; }
+        .pill-pending { background: #854d0e; color: #fef08a; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; }
+        .pill-approved { background: #14532d; color: #86efac; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; }
+        .pill-rejected { background: #7f1d1d; color: #fca5a5; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; }
+        .job-meta { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+        .meta-row { display: flex; justify-content: space-between; font-size: 0.9rem; color: #94a3b8; border-bottom: 1px solid #1e293b; padding-bottom: 6px; }
+        .meta-row strong { color: #f8fafc; }
+        .total-highlight { font-size: 1.05rem; border-bottom: 2px solid #0284c7; padding-top: 4px; }
+        .total-highlight strong { color: #38bdf8; font-size: 1.2rem; }
+        .decision-actions { display: flex; gap: 10px; margin-bottom: 14px; }
+        .btn-approve { background: #10b981; color: white; padding: 10px; flex: 1; }
+        .btn-reject { background: #ef4444; color: white; padding: 10px; flex: 1; }
+        .btn-print { background: #1e293b; color: #f8fafc; padding: 12px; width: 100%; border: 1px solid #334155; }
+    </style>
+</head>
+<body>
+
+<div class="app-layout">
+    <header class="top-nav">
+        <div class="brand">
+            <span class="logo-icon">🤖</span>
+            <div>
+                <h2>AI-POWERED VOICE BOT FOR SMART BUSINESS AUTOMATION</h2>
+                <p>Automated Customer Engagement & Service Desk Management</p>
+            </div>
+        </div>
+        <div class="system-tag">Live MVP</div>
+    </header>
+
+    <div class="selector-card">
+        <div class="selector-content">
+            <label for="vehicle-select"><strong>Select Vehicle:</strong></label>
+            <select id="vehicle-select" onchange="switchVehicle(this.value)">
+                <option value="AP09XX1234">AP09XX1234 - Ravi Kumar (Front Brake Pad - ₹450)</option>
+                <option value="AP21BC5678">AP21BC5678 - Suresh Reddy (Clutch & Oil Leak - ₹1800)</option>
+                <option value="TS07EF9999">TS07EF9999 - Praveen Kumar (Battery Issue - ₹1250)</option>
+                <option value="AP39AZ4321">AP39AZ4321 - Mahesh Naidu (Chain Sprocket - ₹1200)</option>
+                <option value="KA04MK7711">KA04MK7711 - Rajesh Varma (General Inspection - ₹0)</option>
+                <option value="TN09ZZ3344">TN09ZZ3344 - Anitha Rao (Tyre Replacement - ₹600)</option>
+            </select>
+        </div>
+        <button class="btn-voice-connect" onclick="triggerCall()">📞 Connect Live Voice Desk</button>
+    </div>
+
+    <div class="grid-container">
+        <div class="panel-card">
+            <div class="panel-header">
+                <h3>🎙️ AI Voice Call Desk</h3>
+                <span id="call-state-badge" class="state-idle">Idle</span>
+            </div>
+            <div class="call-controls">
+                <button id="btn-start" class="btn-primary" onclick="triggerCall()">Connect Call</button>
+                <button id="btn-stop" class="btn-danger" onclick="endCall()" disabled>Hang Up</button>
+            </div>
+            <div class="conversation-feed">
+                <div class="feed-item user-msg">
+                    <span class="speaker-tag">Customer Speech</span>
+                    <p id="user-transcript">Speech input will display here...</p>
+                </div>
+                <div class="feed-item bot-msg">
+                    <span class="speaker-tag">Bot Response (Telugu Audio)</span>
+                    <p id="bot-response">Select vehicle or click connect call to start...</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel-card">
+            <div class="panel-header">
+                <h3>📋 Active Job Card</h3>
+                <span id="job-status-pill" class="pill-pending">Decision Pending</span>
+            </div>
+            <div class="job-meta">
+                <div class="meta-row"><span>Customer Name:</span> <strong id="lbl-cust-name">Ravi Kumar</strong></div>
+                <div class="meta-row"><span>Vehicle Registration:</span> <strong id="lbl-veh-no">AP09XX1234</strong></div>
+                <div class="meta-row"><span>Detected Issue:</span> <strong id="lbl-issue" style="color:#f59e0b;">Front Brake Pad</strong></div>
+                <div class="meta-row"><span>Additional Cost:</span> <strong>₹<span id="lbl-issue-cost">450</span></strong></div>
+                <div class="meta-row"><span>Initial Base Bill:</span> <strong>₹<span id="lbl-base-bill">1200</span></strong></div>
+                <div class="meta-row total-highlight"><span>Current Net Total:</span> <strong>₹<span id="lbl-total-bill">1200</span></strong></div>
+                <div class="meta-row"><span>Estimated Delivery:</span> <strong id="lbl-eta">05:00 PM</strong></div>
+            </div>
+            <div class="decision-actions">
+                <button class="btn-approve" onclick="recordApproval(true)">Approve (సమ్మతం)</button>
+                <button class="btn-reject" onclick="recordApproval(false)">Decline (వద్దు)</button>
+            </div>
+            <button class="btn-print" onclick="downloadInvoice()">🖨️ Print Final Job Sheet / Invoice</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const DB = {
+    "AP09XX1234": { name: "Ravi Kumar", veh: "AP09XX1234", issue: "Front Brake Pad", cost: 450, base: 1200, current: 1200, eta: "05:00 PM", status: "pending" },
+    "AP21BC5678": { name: "Suresh Reddy", veh: "AP21BC5678", issue: "Engine Oil Leak & Clutch Plate", cost: 1800, base: 2500, current: 2500, eta: "06:30 PM", status: "pending" },
+    "TS07EF9999": { name: "Praveen Kumar", veh: "TS07EF9999", issue: "Exide Battery Replacement", cost: 1250, base: 850, current: 850, eta: "04:00 PM", status: "pending" },
+    "AP39AZ4321": { name: "Mahesh Naidu", veh: "AP39AZ4321", issue: "Chain Sprocket Replacement", cost: 1200, base: 1500, current: 2700, eta: "05:15 PM", status: "approved" },
+    "KA04MK7711": { name: "Rajesh Varma", veh: "KA04MK7711", issue: "Routine Periodic Checkup", cost: 0, base: 950, current: 950, eta: "04:30 PM", status: "approved" },
+    "TN09ZZ3344": { name: "Anitha Rao", veh: "TN09ZZ3344", issue: "Rear Tyre Tube Replacement", cost: 600, base: 1100, current: 1100, eta: "05:45 PM", status: "rejected" }
+};
+
+let active = DB["AP09XX1234"];
+let recognition = null;
+let isCallActive = false;
+
+function refreshUI() {
+    document.getElementById("lbl-cust-name").textContent = active.name;
+    document.getElementById("lbl-veh-no").textContent = active.veh;
+    document.getElementById("lbl-issue").textContent = active.issue;
+    document.getElementById("lbl-issue-cost").textContent = active.cost;
+    document.getElementById("lbl-base-bill").textContent = active.base;
+    document.getElementById("lbl-total-bill").textContent = active.current;
+    document.getElementById("lbl-eta").textContent = active.eta;
+
+    const pill = document.getElementById("job-status-pill");
+    if (active.status === "approved") {
+        pill.textContent = "Customer Approved";
+        pill.className = "pill-approved";
+    } else if (active.status === "rejected") {
+        pill.textContent = "Customer Declined";
+        pill.className = "pill-rejected";
+    } else {
+        pill.textContent = "Decision Pending";
+        pill.className = "pill-pending";
+    }
+}
+
+function switchVehicle(vNum) {
+    if (DB[vNum]) {
+        active = DB[vNum];
+        refreshUI();
+    }
+}
+
+function initVoiceListener() {
+    if ("webkitSpeechRecognition" in window || "SpeechRecognition" in window) {
+        const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+        recognition = new SpeechRec();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.lang = "te-IN";
+
+        recognition.onstart = () => {
+            const badge = document.getElementById("call-state-badge");
+            badge.textContent = "Listening to Customer...";
+            badge.className = "state-live";
+            document.getElementById("user-transcript").textContent = "Mic Active: Cheppandi (Approve / Vaddu)...";
+        };
+
+        recognition.onresult = (event) => {
+            const spokenText = event.results[0][0].transcript.trim().toLowerCase();
+            document.getElementById("user-transcript").textContent = `Customer Spoke: "${spokenText}"`;
+            handleSpokenDecision(spokenText);
+        };
+
+        recognition.onerror = () => {
+            if (isCallActive) {
+                document.getElementById("user-transcript").textContent = "Listening... (Approve leda Vaddu ani cheppandi)";
+            }
+        };
+
+        recognition.onend = () => {
+            if (isCallActive && active.status === "pending") {
+                setTimeout(() => {
+                    try { recognition.start(); } catch(err) {}
+                }, 500);
+            }
+        };
+    }
+}
+
+function speak(teluguText, voiceText, onDone) {
+    document.getElementById("bot-response").textContent = teluguText;
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(voiceText);
+        u.lang = "en-IN";
+        u.rate = 0.9;
+        let called = false;
+        const finish = () => {
+            if (!called) {
+                called = true;
+                if (onDone) onDone();
+            }
+        };
+        u.onend = finish;
+        u.onerror = finish;
+        window.speechSynthesis.speak(u);
+        setTimeout(finish, 4000);
+    } else {
+        if (onDone) onDone();
+    }
+}
+
+function triggerCall() {
+    isCallActive = true;
+    document.getElementById("btn-start").disabled = true;
+    document.getElementById("btn-stop").disabled = false;
+    const badge = document.getElementById("call-state-badge");
+    badge.textContent = "Call Active (Speaking)";
+    badge.className = "state-live";
+
+    initVoiceListener();
+
+    const telugu = `నమస్కారం ${active.name} గారు! మీ బండి ${active.veh} లో ${active.issue} సమస్య ఉంది. దీనికి ₹${active.cost} అవుతుంది. మీరు దీనికి ఆమోదిస్తారా?`;
+    const voice = `Namaskaram ${active.name} garu. Mee bandi ${active.veh} lo ${active.issue} problem undi. Cost ${active.cost} rupees. Meeru approve chesthaara?`;
+
+    speak(telugu, voice, () => {
+        if (isCallActive && recognition) {
+            try { recognition.start(); } catch(e) {}
+        }
+    });
+}
+
+function endCall() {
+    isCallActive = false;
+    document.getElementById("btn-start").disabled = false;
+    document.getElementById("btn-stop").disabled = true;
+    const badge = document.getElementById("call-state-badge");
+    badge.textContent = "Call Ended";
+    badge.className = "state-idle";
+    if (recognition) try { recognition.stop(); } catch(e) {}
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+}
+
+function handleSpokenDecision(text) {
+    const approveTerms = ["approve", "చేయండి", "మార్చండి", "సరే", "ఓకే", "okay", "yes", "చెయ్", "హా", "ok"];
+    const rejectTerms = ["వద్దు", "vaddu", "oddu", "no", "reject", "వద్దులే", "క్యాన్సల్"];
+
+    if (approveTerms.some(t => text.includes(t))) {
+        recordApproval(true);
+    } else if (rejectTerms.some(t => text.includes(t))) {
+        recordApproval(false);
+    } else {
+        speak(`క్షమించండి, అర్థం కాలేదు. రిపేర్ చేయడానికి అవును లేదా వద్దు అని చెప్పండి.`, `Kshaminchandi ardham kaledu. Repair approve chesthara? Yes leda vaddu ani cheppandi.`, () => {
+            if (isCallActive && recognition) {
+                try { recognition.start(); } catch(e) {}
+            }
+        });
+    }
+}
+
+function recordApproval(isApproved) {
+    if (recognition) try { recognition.stop(); } catch(e) {}
+
+    if (isApproved) {
+        active.status = "approved";
+        active.current = active.base + active.cost;
+        active.eta = "05:45 PM";
+        refreshUI();
+        speak(`ధన్యవాదాలు! మీ ఆమోదం నమోదయింది. మొత్తం బిల్లు ₹${active.current}. రసీదు ప్రింట్ తీసుకోండి.`, `Dhanyavaadaalu! Approval confirm ayindi. Total bill ${active.current} rupees.`);
+    } else {
+        active.status = "rejected";
+        active.current = active.base;
+        refreshUI();
+        speak(`సరేనండి, అదనపు రిపేర్ రద్దు చేయబడింది. సాధారణ బిల్లు ₹${active.base} మాత్రమే.`, `Sare nandi, repair cancel chesamu. Regular bill ${active.base} rupees mathrame untundi.`);
+    }
+}
+
+function downloadInvoice() {
+    const isApp = active.status === "approved";
+    const statusText = isApp ? "CUSTOMER APPROVED" : "CUSTOMER DECLINED";
+    const addCost = isApp ? `INR ${active.cost}` : "INR 0 (Declined)";
+    const total = active.current;
+
+    const receipt = 
+`======================================================
+       MOTOASSIST SERVICE DESK - OFFICIAL INVOICE
+======================================================
+Customer Name      : ${active.name}
+Vehicle Number     : ${active.veh}
+Approval Decision  : ${statusText}
+Delivery Time (ETA): ${active.eta}
+------------------------------------------------------
+1. General Service Charge      : INR ${active.base}
+2. Additional Repair Job:
+   - Part Name                 : ${active.issue}
+   - Repair Cost               : ${addCost}
+------------------------------------------------------
+FINAL PAYABLE AMOUNT           : INR ${total}
+======================================================
+Status: Processed & Verified via AI Voice Desk
+======================================================`;
+
+    const blob = new Blob([receipt], { type: "text/plain;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `Invoice_${active.veh}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    setTimeout(() => { window.print(); }, 400);
+}
+
+window.onload = function() {
+    const sel = document.getElementById("vehicle-select");
+    switchVehicle(sel.value);
+};
+</script>
+</body>
+</html>
