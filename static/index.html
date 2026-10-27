@@ -1,0 +1,217 @@
+<script>
+const DB = {
+    "AP09XX1234": { name: "Ravi Kumar", veh: "AP09XX1234", issue: "Front Brake Pad", cost: 450, base: 1200, current: 1200, eta: "05:00 PM", status: "pending" },
+    "AP21BC5678": { name: "Suresh Reddy", veh: "AP21BC5678", issue: "Engine Oil Leak & Clutch Plate", cost: 1800, base: 2500, current: 2500, eta: "06:30 PM", status: "pending" },
+    "TS07EF9999": { name: "Praveen Kumar", veh: "TS07EF9999", issue: "Exide Battery Replacement", cost: 1250, base: 850, current: 850, eta: "04:00 PM", status: "pending" },
+    "AP39AZ4321": { name: "Mahesh Naidu", veh: "AP39AZ4321", issue: "Chain Sprocket Replacement", cost: 1200, base: 1500, current: 2700, eta: "05:15 PM", status: "approved" },
+    "KA04MK7711": { name: "Rajesh Varma", veh: "KA04MK7711", issue: "Routine Periodic Checkup", cost: 0, base: 950, current: 950, eta: "04:30 PM", status: "approved" },
+    "TN09ZZ3344": { name: "Anitha Rao", veh: "TN09ZZ3344", issue: "Rear Tyre Tube Replacement", cost: 600, base: 1100, current: 1100, eta: "05:45 PM", status: "rejected" }
+};
+
+let active = DB["AP09XX1234"];
+let recognition = null;
+let isCallActive = false;
+
+function refreshUI() {
+    document.getElementById("lbl-cust-name").textContent = active.name;
+    document.getElementById("lbl-veh-no").textContent = active.veh;
+    document.getElementById("lbl-issue").textContent = active.issue;
+    document.getElementById("lbl-issue-cost").textContent = active.cost;
+    document.getElementById("lbl-base-bill").textContent = active.base;
+    document.getElementById("lbl-total-bill").textContent = active.current;
+    document.getElementById("lbl-eta").textContent = active.eta;
+
+    const pill = document.getElementById("job-status-pill");
+    if (active.status === "approved") {
+        pill.textContent = "Customer Approved";
+        pill.className = "pill-approved";
+    } else if (active.status === "rejected") {
+        pill.textContent = "Customer Declined";
+        pill.className = "pill-rejected";
+    } else {
+        pill.textContent = "Decision Pending";
+        pill.className = "pill-pending";
+    }
+}
+
+function switchVehicle(vNum) {
+    if (DB[vNum]) {
+        active = DB[vNum];
+        refreshUI();
+    }
+}
+
+// Speech Recognition Initialization
+function initVoiceListener() {
+    if ("webkitSpeechRecognition" in window || "SpeechRecognition" in window) {
+        const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+        recognition = new SpeechRec();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.lang = "te-IN"; // Telugu Speech Recognition
+
+        recognition.onstart = () => {
+            const badge = document.getElementById("call-state-badge");
+            badge.textContent = "Listening to Customer...";
+            badge.className = "state-live";
+            document.getElementById("user-transcript").textContent = "Mic Active: Cheppandi (Approve / Vaddu)...";
+        };
+
+        recognition.onresult = (event) => {
+            const spokenText = event.results[0][0].transcript.trim().toLowerCase();
+            document.getElementById("user-transcript").textContent = `Customer Spoke: "${spokenText}"`;
+            handleSpokenDecision(spokenText);
+        };
+
+        recognition.onerror = (e) => {
+            console.warn("Recognition notice:", e);
+            if (isCallActive) {
+                document.getElementById("user-transcript").textContent = "Mic listening... (Approve leda Vaddu ani cheppandi)";
+            }
+        };
+
+        recognition.onend = () => {
+            if (isCallActive && active.status === "pending") {
+                setTimeout(() => {
+                    try { recognition.start(); } catch(err) {}
+                }, 600);
+            }
+        };
+    }
+}
+
+function speak(teluguText, voiceText, onDone) {
+    document.getElementById("bot-response").textContent = teluguText;
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(voiceText);
+        u.lang = "en-IN";
+        u.rate = 0.9;
+        
+        let called = false;
+        const finish = () => {
+            if (!called) {
+                called = true;
+                if (onDone) onDone();
+            }
+        };
+
+        u.onend = finish;
+        u.onerror = finish;
+        window.speechSynthesis.speak(u);
+        setTimeout(finish, 4500); // Failsafe
+    } else {
+        if (onDone) onDone();
+    }
+}
+
+function triggerCall() {
+    isCallActive = true;
+    document.getElementById("btn-start").disabled = true;
+    document.getElementById("btn-stop").disabled = false;
+    const badge = document.getElementById("call-state-badge");
+    badge.textContent = "Call Active (Speaking)";
+    badge.className = "state-live";
+
+    initVoiceListener();
+
+    const telugu = `నమస్కారం ${active.name} గారు! మీ బండి ${active.veh} లో ${active.issue} సమస్య ఉంది. దీనికి ₹${active.cost} అవుతుంది. మీరు దీనికి ఆమోదిస్తారా?`;
+    const voice = `Namaskaram ${active.name} garu. Mee bandi ${active.veh} lo ${active.issue} problem undi. Cost ${active.cost} rupees. Meeru approve chesthaara?`;
+
+    // Bot matladadam aipoyina ventane mic open avthundi
+    speak(telugu, voice, () => {
+        if (isCallActive && recognition) {
+            try { recognition.start(); } catch(e) {}
+        }
+    });
+}
+
+function endCall() {
+    isCallActive = false;
+    document.getElementById("btn-start").disabled = false;
+    document.getElementById("btn-stop").disabled = true;
+    const badge = document.getElementById("call-state-badge");
+    badge.textContent = "Call Ended";
+    badge.className = "state-idle";
+    if (recognition) try { recognition.stop(); } catch(e) {}
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+}
+
+// Customer Voice Parsing Logic
+function handleSpokenDecision(text) {
+    const approveTerms = ["approve", "చేయండి", "మార్చండి", "సరే", "ఓకే", "okay", "yes", "చెయ్", "హా", "ok", "proceed"];
+    const rejectTerms = ["వద్దు", "vaddu", "oddu", "no", "reject", "వద్దులే", "క్యాన్సల్", "cancel"];
+
+    if (approveTerms.some(t => text.includes(t))) {
+        recordApproval(true);
+    } else if (rejectTerms.some(t => text.includes(t))) {
+        recordApproval(false);
+    } else {
+        const teluguClarify = `క్షమించండి, అర్థం కాలేదు. రిపేర్ చేయడానికి అవును లేదా వద్దు అని చెప్పండి.`;
+        const voiceClarify = `Kshaminchandi ardham kaledu. Repair approve chesthara? Yes leda vaddu ani cheppandi.`;
+        speak(teluguClarify, voiceClarify, () => {
+            if (isCallActive && recognition) {
+                try { recognition.start(); } catch(e) {}
+            }
+        });
+    }
+}
+
+function recordApproval(isApproved) {
+    if (recognition) try { recognition.stop(); } catch(e) {}
+
+    if (isApproved) {
+        active.status = "approved";
+        active.current = active.base + active.cost;
+        active.eta = "05:45 PM";
+        refreshUI();
+        speak(`ధన్యవాదాలు! మీ ఆమోదం నమోదయింది. మొత్తం బిల్లు ₹${active.current}. రసీదు ప్రింట్ తీసుకోండి.`, `Dhanyavaadaalu! Approval confirm ayindi. Total bill ${active.current} rupees.`);
+    } else {
+        active.status = "rejected";
+        active.current = active.base;
+        refreshUI();
+        speak(`సరేనండి, అదనపు రిపేర్ రద్దు చేయబడింది. సాధారణ బిల్లు ₹${active.base} మాత్రమే.`, `Sare nandi, repair cancel chesamu. Regular bill ${active.base} rupees mathrame untundi.`);
+    }
+}
+
+function downloadInvoice() {
+    const isApp = active.status === "approved";
+    const statusText = isApp ? "CUSTOMER APPROVED" : "CUSTOMER DECLINED";
+    const addCost = isApp ? `INR ${active.cost}` : "INR 0 (Declined)";
+    const total = active.current;
+
+    const receipt = 
+`======================================================
+       MOTOASSIST SERVICE DESK - OFFICIAL INVOICE
+======================================================
+Customer Name      : ${active.name}
+Vehicle Number     : ${active.veh}
+Approval Decision  : ${statusText}
+Delivery Time (ETA): ${active.eta}
+------------------------------------------------------
+1. General Service Charge      : INR ${active.base}
+2. Additional Repair Job:
+   - Part Name                 : ${active.issue}
+   - Repair Cost               : ${addCost}
+------------------------------------------------------
+FINAL PAYABLE AMOUNT           : INR ${total}
+======================================================
+Status: Processed & Verified via AI Voice Desk
+======================================================`;
+
+    const blob = new Blob([receipt], { type: "text/plain;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `Invoice_${active.veh}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    setTimeout(() => { window.print(); }, 400);
+}
+
+window.onload = function() {
+    const sel = document.getElementById("vehicle-select");
+    switchVehicle(sel.value);
+};
+</script>
